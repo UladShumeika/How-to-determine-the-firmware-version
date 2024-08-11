@@ -1,32 +1,32 @@
 ## Introduction
-In the world of embedded software development, firmware versioning plays a crucial role. Even if the product rarely changes in its working state, during design and debugging, the software version can change rapidly. I don't know about you, but I often forget to update the version manually. Therefore, it's time to automate this process a bit.
-In this guide, I describe the details I like to store in each build, how I capture these details, and how I make them available to the firmware.
+Almost every, and maybe every firmware needs versioning. This is especially useful when the customer reports bugs and you need to understand what version is being used.
 
-There are various versioning options, depending on the project and the preferences of individual engineers. I would like to focus on the following format:
-v[MAJOR].[MINOR].[PATCH]-[SHORT COMMIT HASH][DURTY BUILD].
+In this guide, I will try to show how you can assign a version to the firmware without having to worry too much about it
 
-Конечно же если вам не нужно относительно часто менять версию прошивки и вам не нужна дополнительная информация такая как HASH коммита, то можно использовать просто defines
+## Simple option
+
+Of course, if you don't need to change the firmware version relatively often and you don't need additional information such as the commit hash or a test mark or something else, then you can simply use defines
 
 ```c
 #define FW_VERSION_MAJOR        1
 #define FW_VERSION_MINOR        0
-#define FWVERSION_PATCH         1
+#define FW_VERSION_PATCH        1
 ```
 
-или
+or
 
 ```C
 #define FW_VERSION              "1.0.1"
 ```
 
-Однако довольно часто бывает необходимо менять версию прошивки еще даже до релиза, то изменять ее вручную бывает напряжно, например я всегда забываю это делать. В таких случаях полезно автоматизировать процесс установки прошивки, а также добавить немного дополнительной информации для облегчения индетификации фактической функциональности прошивки, а также отладки. Для автоматизации над понадобиться ``git`` и его ``git tags``. Также в качестве структуры версии прошивки будем использовать следующий вариант:
+However, it is often necessary to change the firmware version even before the release, and changing it manually can be stressful, for example, I always forget to do it. In such cases, it is useful to automate the firmware installation process, as well as add some additional information to facilitate the identification of the actual functionality of the firmware, as well as debugging. For automation, you will need ``git`` and its ``git tags``. Also, as a firmware version structure, we will use the following option:
 
 ``v[MAJOR].[MINOR].[PATCH]-[SHORT COMMIT HASH][DURTY BUILD]``
 
 
 ## Makefiles
 
-Например, если ваш проект построен на прямом использовании ``makefiles``, определение прошивки может выглядеть следующий образом:
+For example, if your project is built using ``makefiles`` directly, the firmware definition in your makefile might look like this:
 
 ```makefile
 VERSION_BUILD_TAG := $(subst v,,$(shell git describe --tags))
@@ -52,9 +52,9 @@ CFLAGS += -DFW_VERSION_MAJOR=\"${VERSION_MAJOR}\" \
 		  -DFW_VERSION_DIRTY_INDEX=\"${DIRTY_BUILD_INDEX}\"
 ```
 
-## Cmake
+## CMake
 
-А вот если проект, основан на ``Cmake``, то определение прошивки уже может выглядить вот так:
+But if the project is based on ``CMake``, then the firmware definition may look like this:
 
 ```cmake
 # Getting the build tag of the firmware version without the 'v' prefix
@@ -113,11 +113,11 @@ add_compile_definitions(
 
 ## STM32CubeIDE or Eclipse based IDE
 
-Конечно же есть достаточно большое количество проектов завязанных на конкретной IDE, так как я в основном использую STM32, поэтому рассмотрим вариант для ``STM32CubeIDE``, однако данный вариант подходит и для других IDE.
+Of course, there are quite a lot of projects tied to a specific IDE and there is no possibility to flexibly configure makefiles. But even in such cases, you can automate the assignment of the firmware version. Since I mainly use STM32, therefore we will consider the option for ``STM32CubeIDE``, however, this option is also suitable for other IDEs.
 
-Несмотря на то, что в ``STM32CubeIDE`` есть возможность установить ``Build Variables``, к сожалению они не могут изменяться динамически (ну или я не разобрался). Поэтому можно создать отдельный .h файл который будет подключаться уже в самом проекте.
+Despite the fact that ``STM32CubeIDE`` has the ability to install ``Build Variables``, unfortunately they cannot be changed dynamically (or I didn't figure it out). Therefore, you can create a separate .h file that will be connected in the project itself.
 
-Сперва создаем ``bash`` файл (причем это верно и для Windows системы), например ``version.sh`` и сохраним в каталоге ``Tools/``, конечно же вы пожете сохранить его туда куда вам удобно
+First, create a ``bash`` file (and this is true for Windows systems as well), for example ``version.sh`` and save it in the ``Tools/`` directory, of course, you can save it wherever you like
 
 ```bash
 #!/bin/bash
@@ -164,13 +164,19 @@ EOF
 
 ```
 
-И подключаем данный файл как ``Pre-build command``
+And we include this file as ``Pre-build command``
 
 <p align = "center">
 	<img src="https://github.com/UladShumeika/How-to-determine-the-firmware-version/blob/main/setting_version.png" alt="Device operation example">
 </p>
 
-![Alt text]("https://github.com/UladShumeika/How-to-determine-the-firmware-version/blob/main/setting_version.png")
 
+And of course, we connect this file to our project.
 
- 
+```C
+#include "version.h"
+```
+
+## Сonclusion
+
+This approach to assigning a firmware version is just one of many possibilities. There are certainly other methods, and you can adapt and expand on these techniques to fit different versioning strategies. I hope this information proves useful to you as you explore and implement the best practices for your projects.
