@@ -166,6 +166,10 @@ EOF
 
 И подключаем данный файл как ``Pre-build command``
 
+<p align = "center">
+	<img src="https://github.com/UladShumeika/How-to-determine-the-firmware-version/blob/main/setting_version.png" alt="Device operation example">
+</p>
+
 ![Alt text]("https://github.com/UladShumeika/How-to-determine-the-firmware-version/blob/main/setting_version.png")
 
 
